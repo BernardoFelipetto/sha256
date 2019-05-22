@@ -9,16 +9,16 @@ if len(sys.argv) < 3:
 VIDEO_FILE_PATH = sys.argv[1]
 EXPECTED_H0 = sys.argv[2]
 
+block_size = 1024
 blocks = []
-h0 = b''
 
 with open(VIDEO_FILE_PATH, "rb") as handle:
-    block = handle.read(1024)
-
+    block = handle.read(block_size)
     while block:
         blocks.append(block)
-        block = handle.read(1024)
+        block = handle.read(block_size)
 
+h0 = b''
 for block in reversed(blocks):
     h0 = hashlib.sha256(block + h0).digest()
 
