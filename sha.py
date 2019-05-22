@@ -2,36 +2,35 @@ import os
 import sys
 import hashlib
 
-VIDEO_FILE_PATH = sys.argv[1]
-MATCHING_HASH = sys.argv[2]
-#matching hash should be 8e423302209494d266a7ab7e1a58ca8502c9bfdaa31dfba70aa8805d20c087bd for video 5
-
-if not len(sys.argv) >= 3:
-    print("wrong number of arguments")
+if len(sys.argv) < 3:
+    print("Usage: sha.py <file> <expected h0 sha256>")
     sys.exit(1)
 
+VIDEO_FILE_PATH = sys.argv[1]
+EXPECTED_H0 = sys.argv[2]
 
-file_size = os.path.getsize(VIDEO_FILE_PATH)
-videolist = list()
-checksum = b''
-
+blocks = []
+h0 = b''
 
 with open(VIDEO_FILE_PATH, "rb") as handle:
-    video_file_bytes = handle.read(1024)
-    videolist.append(video_file_bytes)
+    block = handle.read(1024)
 
-    while video_file_bytes:
-        video_file_bytes = handle.read(1024)
-        videolist.append(video_file_bytes)
+    while block:
+        blocks.append(block)
+        block = handle.read(1024)
 
-for i in reversed(videolist):
-    byte_block = i
-    uncoded_bytes = hashlib.sha256()
-    uncoded_bytes.update(byte_block + checksum)
-    checksum = uncoded_bytes.digest()
+for block in reversed(blocks):
+    h0 = hashlib.sha256(block + h0).digest()
 
+hex_h0 = h0.hex()
 
-print(checksum.hex())
-
-
-
+if hex_h0 == EXPECTED_H0:
+    print("Hashes do match.")
+    print("Expected:   {}".format(EXPECTED_H0))
+    print("Calculated: {}".format(hex_h0))
+    sys.exit(0)
+else:
+    print("Hashes do not match.")
+    print("Expected:   {}".format(EXPECTED_H0))
+    print("Calculated: {}".format(hex_h0))
+    sys.exit(1)
