@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{listings}
+
+\usepackage{graphicx,url}
+
+\usepackage[brazil]{babel}   
+%\usepackage[latin1]{inputenc}  
+\usepackage[utf8]{inputenc}  
+% UTF-8 encoding is recommended by ShareLaTex
+
+\usepackage{color}
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+language=Python,
+frame=tb,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+     
+     
+\lstset{style=mystyle}
+
+\sloppy
+
+\title{Validação de integridade usando SHA-25\\}
+
+\author{Bernardo C. Felipetto Oliveira\inst{1} }
+
+
+\address{Escola Politécnica -- Pontifícia Universidade Católica do Rio Grande do Sul
+  (PUCRS)\\
+  Porto Alegre -- RS -- Brazil
+\email{bernardo.oliveira.001@acad.pucrs.br}
+}
+
+\begin{document} 
+
+\maketitle
+
+\begin{abstract}
+  The main goal of this article is to validate the integrity of a video file by computing its Hash using the SHA- 256 function. The proposed problem and the design of the solution will be presented; to prove the correct implementation of data processing, we used a video file for testing, knowing the correct expected final Hash.
+\end{abstract}
+     
+\begin{resumo} 
+  Este artigo tem por objetivo validar a integridade de um arquivo de vídeo através da computação de seu Hash utilizando a função SHA-256. O problema proposto e o design da solução serão apresentados; para provar a implementação correta do processamento de dados, utilizamos um arquivo de vídeo para teste, conhecendo o seu Hash final correto.
+\end{resumo}
+
+\section{Introdução}
+
+As funções \textit{hash} são realizadas através de operações matemáticas computadas sobre um certo dado. Funcionando como uma espécie de assinatura digital, ao comparar o resultado destas operações com o resultado esperado temos a garantia que os dados não foram alterados após seu envio, assim validando a integridade do arquivo. O aspecto mais importante destas operações é a resistência a colisões, isto é, dado duas entradas diferentes é impossível obter o mesmo \textit{hash}. Para realizar o estudo sobre funções \textit{hash} o seguinte cenário foi proposto:
+
+\begin{itemize}
+  \item Realizar o download de um arquivo de vídeo, dividi-lo em blocos, calcular o \textit{hash} de cada bloco de forma encadeada e descobrir o \textit{hash} final referente ao bloco inicial
+ 
+\end{itemize}
+
+\section{Implementação do Algoritmo} 
+
+A linguagem escolhida foi \textit{Python} devido ao seu suporte para as funções necessárias. O código inicia recebendo dois argumentos pela linha de comando, o caminho para o arquivo de vídeo e o \textit{hash} esperado, respectivamente. O tamanho de bloco é definido como 1024KB e então cria-se um vetor contendo estes blocos de \textit{bytes}. Caso o arquivo não seja múltiplo de 1024 o python automaticamente lê apenas os \textit{bytes} restantes. 
+\\
+\\
+\\
+\\
+\\
+\begin{lstlisting}[caption=Divisão de blocos de 1024KB]
+VIDEO_FILE_PATH = sys.argv[1]
+EXPECTED_H0 = sys.argv[2]
+
+block_size = 1024
+blocks = []
+
+with open(VIDEO_FILE_PATH, "rb") as handle:
+    block = handle.read(block_size)
+    while block:
+        blocks.append(block)
+        block = handle.read(block_size)
+}
+\end{lstlisting}
+
+O hash de cada bloco deve então ser calculado a partir dos seus \textit{bytes} deste vetor, concatenados com os 32 \textit{bytes} referentes ao \textit{hash} anterior. Com o auxílio do \textit{Python} apenas percorremos o vetor criado em sua ordem reversa calculando o SHA-256 do bloco com seu \textit{hash}, sendo que o \textit{hash} da ultima posição é iniciado como vazio. A função \textit{digest} retorna os 32 \textit{bytes} não encriptados que serão utilizados na proxima iteração. Ao final da execução o valor de h0 é convertido para um valor hexadecimal para representação textual, assim o representando em 64 \textit{bytes}.
+
+\begin{lstlisting}[caption=Cálculo do hash zero]
+h0 = b''
+for block in reversed(blocks):
+    h0 = hashlib.sha256(block + h0).digest()
+
+hex_h0 = h0.hex()
+\end{lstlisting}
+
+Por fim é realizada apenas uma comparação simples entre o valor hexadecimal de h0 e o valor esperado, que foi informado por parâmetro anteriormente via linha de comando. Uma mensagem é exibida informando se o arquivo sofreu alteração ou não. O \textit{hash} calculado para o video03 foi: \textbf{ee24473e4a369a305c9c3d54629eff01f609b8e2f61ca9cf6f3084f13fe346d6}
+
+\\
+
+O vídeo de teste e código fonte completo podem ser acessados neste repositório: https://github.com/BernardoFelipetto/sha256
+
+
+\section{References}
+
+Hashlib. Python Documentation. 2019. Disponível em: https://docs.python.org/3/library/hashlib.html
+\\Acesso em: 21 maio 2019.
+
+Funções resumo (Hash functions). Avelino Francisco Zorzo. Material fornecido via Moodle.
+
+
+\end{document}
